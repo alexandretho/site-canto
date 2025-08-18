@@ -11,34 +11,6 @@ permissions:
 jobs:
   ai_files:
     runs-on: ubuntu-latest
-    env:
-      TOPIC_POOL: >
-        Curiosidades sobre a voz,
-        Importância de ter uma mentoria vocal,
-        Dicas de aquecimento vocal rápido,
-        Cuidados com a voz antes de cantar,
-        Passaggio: como suavizar a transição,
-        Twang: quando e como usar,
-        Belting com segurança,
-        Respiração costo-diafragmática,
-        Higiene vocal diária,
-        Voz mista (mix voice),
-        Recuperação vocal pós-resfriado,
-        Postura e projeção,
-        Articulação e dicção,
-        Como estudar canto com consistência,
-        Erros que desgastam a voz,
-        Preparação para ensaio e show,
-        Aquecimento e desaquecimento,
-        Escolha de repertório,
-        Como a fono ajuda cantores,
-        Mentoria vocal: benefícios
-      TONE: "Didático, encorajador, com exemplos práticos e avisos de saúde vocal"
-      MIN_WORDS: "280"
-      MAX_WORDS: "520"
-      SITE_NAME: "Canto & Mentoria"
-      SITE_URL: "https://SEU_USUARIO.github.io/SEU_REPO"
-      OPENROUTER_MODEL: "google/gemini-2.0-flash-lite-preview-02-05:free"
 
     steps:
       - name: Checkout
@@ -48,15 +20,50 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+          cache: "pip"   # acelera installs
 
-      - name: Install deps
+      - name: Install dependencies
         run: |
-          pip install --disable-pip-version-check --no-cache-dir \
-            "openai==1.35.13" "python-slugify==8.0.4"
+          python -m pip install --upgrade pip
+          python -m pip install requests==2.32.3 python-slugify==8.0.4
+          # Verificação rápida (aparece no log)
+          python - <<'PY'
+          import sys
+          print("Python:", sys.version)
+          import requests; print("requests:", requests.__version__)
+          import slugify; print("slugify OK")
+          PY
 
       - name: Generate files
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          TOPIC_POOL: >
+            Curiosidades sobre a voz,
+            Importância de ter uma mentoria vocal,
+            Dicas de aquecimento vocal rápido,
+            Cuidados com a voz antes de cantar,
+            Passaggio: como suavizar a transição,
+            Twang: quando e como usar,
+            Belting com segurança,
+            Respiração costo-diafragmática,
+            Higiene vocal diária,
+            Voz mista (mix voice),
+            Recuperação vocal pós-resfriado,
+            Postura e projeção,
+            Articulação e dicção,
+            Como estudar canto com consistência,
+            Erros que desgastam a voz,
+            Preparação para ensaio e show,
+            Aquecimento e desaquecimento,
+            Escolha de repertório,
+            Como a fono ajuda cantores,
+            Mentoria vocal: benefícios
+          TONE: "Didático, encorajador, com exemplos práticos e avisos de saúde vocal"
+          MIN_WORDS: "280"
+          MAX_WORDS: "520"
+          SITE_NAME: "Canto & Mentoria"
+          SITE_URL: "https://SEU_USUARIO.github.io/SEU_REPO"
+          OPENROUTER_MODEL: "google/gemini-2.0-flash-lite-preview-02-05:free"
         run: |
           python scripts/generate_post_files.py
 
