@@ -66,7 +66,7 @@
       <h1>🎤 Canto & 🗣️ Fono – Posts (via Issues)</h1>
       <div class="subtitle">Posts criados pela IA como Issues públicas no seu repositório GitHub</div>
       <div class="toolbar">
-        <input id="q" type="search" placeholder="Filtrar (ex.: belting, passaggio, pix, mentoria)" />
+        <input id="q" type="search" placeholder="Filtrar (ex.: belting, passaggio, mentoria)" />
         <select id="limit">
           <option value="6">6 itens</option>
           <option value="9" selected>9 itens</option>
@@ -85,24 +85,21 @@
   </main>
 
   <footer>
-    Dica: passe <code>?repo=OWNER/REPO&labels=post,publicar&limit=12</code> na URL para configurar sem editar código.
+    Use <code>?repo=alexandretho.github.io/site-canto&labels=post,publicar&limit=12</code> na URL para configurar sem editar código.
   </footer>
 
 <script>
 /** ============ Config ============ **/
 const params = new URLSearchParams(location.search);
 const CONFIG = {
-  // Defina seu repo aqui OU passe ?repo=owner/nome na URL
-  owner: (params.get('repo') || 'SEU_USUARIO/SEU_REPO').split('/')[0],
-  repo:  (params.get('repo') || 'SEU_USUARIO/SEU_REPO').split('/')[1],
-  // Labels que identificam posts (separe por vírgula na URL)
+  owner: (params.get('repo') || 'alexandretho.github.io/site-canto').split('/')[0],
+  repo:  (params.get('repo') || 'alexandretho.github.io/site-canto').split('/')[1],
   labels: (params.get('labels') || 'post,publicar')
             .split(',').map(s => s.trim()).filter(Boolean),
-  // Limite padrão (sobreposto pelo <select> e por ?limit=)
   defaultLimit: parseInt(params.get('limit') || '9', 10) || 9
 };
 
-// Tema opcional via URL (ajustes sutis)
+// Tema opcional
 (function applyTheme(){
   const preset = params.get('preset');
   if(preset === 'purple'){
@@ -124,7 +121,6 @@ function fmtDate(iso){
   } catch { return iso; }
 }
 
-// Renderiza Markdown para HTML usando a API pública do GitHub
 async function renderMarkdownGFM(text){
   try{
     const res = await fetch('https://api.github.com/markdown', {
@@ -135,24 +131,29 @@ async function renderMarkdownGFM(text){
     if(!res.ok) throw new Error('md render fail');
     return await res.text();
   }catch(e){
-    // Fallback simples (escapar e manter quebras de linha)
     const esc = (s)=> s.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
     return '<pre style="white-space:pre-wrap;margin:0">'+esc(text)+'</pre>';
   }
 }
 
-/** ============ Data Fetch ============ **/
+/** ============ Data Fetch (sem labels, filtrando no cliente = OR) ============ **/
 async function fetchIssues(){
-  const labels = CONFIG.labels.join(',');
-  const url = `https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}/issues`+
-              `?state=open&per_page=30&sort=created&direction=desc&labels=${encodeURIComponent(labels)}`;
-  const res = await fetch(url, { headers:{ 'Accept':'application/vnd.github+json' }});
-  if(!res.ok){
-    throw new Error('Falha ao carregar issues: '+res.status);
-  }
+  const url = `https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}/issues?state=open&per_page=50&sort=created&direction=desc`;
+  const res = await fetch(url, {
+    headers:{
+      'Accept':'application/vnd.github+json',
+      'User-Agent': 'gh-issues-reader' // ajuda com alguns gateways
+    }
+  });
+  if(!res.ok) throw new Error('Falha ao carregar issues: '+res.status);
   const data = await res.json();
-  // Exclui PRs (GitHub retorna PRs no endpoint de issues)
   return data.filter(it => !it.pull_request);
+}
+
+function hasAnyWantedLabel(issue){
+  if(!CONFIG.labels.length) return true;
+  const names = (issue.labels || []).map(l => (l.name||'').toLowerCase());
+  return CONFIG.labels.some(w => names.includes(w.toLowerCase()));
 }
 
 /** ============ UI ============ **/
@@ -161,13 +162,14 @@ async function load(){
   try{
     limitSel.value = String(CONFIG.defaultLimit);
     const issues = await fetchIssues();
-    if(!issues.length){
+    const filtered = issues.filter(hasAnyWantedLabel);
+    if(!filtered.length){
       emptyBox.style.display = 'block';
-      emptyBox.textContent = 'Nenhum post encontrado com as labels: '+CONFIG.labels.join(', ');
+      emptyBox.textContent = 'Nenhum post encontrado com as labels: '+(CONFIG.labels.join(', ')||'(todas)');
       return;
     }
-    // Pré-render markdown (paralelo)
-    const rendered = await Promise.all(issues.map(async (it) => ({
+    // Pré-render markdown em paralelo
+    const rendered = await Promise.all(filtered.map(async (it) => ({
       number: it.number,
       title: it.title,
       created_at: it.created_at,
@@ -178,7 +180,7 @@ async function load(){
     render();
   }catch(e){
     emptyBox.style.display = 'block';
-    emptyBox.textContent = 'Erro ao carregar posts. Verifique o repositório/labels na URL.';
+    emptyBox.textContent = 'Erro ao carregar posts. Verifique o ?repo=OWNER/REPO e se as issues são públicas.';
     console.error(e);
   }
 }
@@ -198,7 +200,6 @@ function render(){
     emptyBox.textContent = 'Nada encontrado com esse filtro.';
     return;
   }
-
   for(const it of list.slice(0, limit)){
     const card = document.createElement('article');
     card.className = 'card';
