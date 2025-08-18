@@ -1,0 +1,214 @@
+name: AI – Create Blog Issue (OpenRouter, auto-free-model) – Fono
+
+on:
+  schedule:
+    - cron: "0 */4 * * *"   # a cada 4 horas
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: ai-issue-bot
+  cancel-in-progress: false
+
+jobs:
+  ai_issue:
+    runs-on: ubuntu-latest
+    environment: prod   # coloque OPENROUTER_API_KEY como secret no Environment "prod"
+
+    env:
+      LABELS: "post, publicar"
+      TOPIC_POOL: >
+        Curiosidades sobre a voz,
+        Importância de ter uma mentoria vocal,
+        Dicas de aquecimento vocal,
+        Cuidados com a voz antes de cantar,
+        Passaggio: como suavizar a transição,
+        Twang: quando e como usar,
+        Belting com segurança,
+        Respiração costo-diafragmática,
+        Higiene vocal diária,
+        Voz mista (mix voice),
+        Recuperação vocal pós-resfriado,
+        Postura e projeção,
+        Articulação e dicção,
+        Como estudar canto com consistência,
+        Erros que desgastam a voz,
+        Preparação para ensaio e show,
+        Aquecimento e desaquecimento,
+        Escolha de repertório,
+        Como a fono ajuda cantores,
+        Mentoria vocal: benefícios
+      TONE: "Didático, encorajador, com exemplos práticos e avisos de saúde vocal"
+      MIN_WORDS: "280"
+      MAX_WORDS: "520"
+      SITE_NAME: "Canto Mentoria Express"
+      SITE_URL: "https://canto-mentoriaexpress.my.canva.site"   # opcional (Referer ASCII)
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install deps
+        run: |
+          pip install --disable-pip-version-check --no-cache-dir \
+            "openai==1.35.13" "httpx==0.27.2"
+
+      - name: Generate issue with AI (auto-pick free model)
+        id: gen
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          GITHUB_REPO: ${{ github.repository }}
+        run: |
+          python - <<'PY'
+          import os, json, random, datetime, pathlib, re, sys
+          import httpx
+          from openai import OpenAI
+          from openai import APIStatusError
+
+          labels     = os.getenv("LABELS", "post, publicar")
+          topics     = [t.strip() for t in os.getenv("TOPIC_POOL","").split(",") if t.strip()]
+          tone       = os.getenv("TONE", "Didático e encorajador")
+          min_words  = int(os.getenv("MIN_WORDS","280"))
+          max_words  = int(os.getenv("MAX_WORDS","520"))
+          site_name  = os.getenv("SITE_NAME","Canto Mentoria Express")
+          site_url   = os.getenv("SITE_URL","https://example.com")
+          api_key    = os.getenv("OPENROUTER_API_KEY")
+          if not api_key:
+            raise SystemExit("❌ OPENROUTER_API_KEY não definido no Environment 'prod'.")
+
+          topic = random.choice(topics) if topics else "Canto"
+
+          # Data (America/Sao_Paulo); fallback UTC-3
+          try:
+            from zoneinfo import ZoneInfo
+            date_pt = datetime.datetime.now(ZoneInfo("America/Sao_Paulo")).strftime("%d/%m/%Y")
+          except Exception:
+            date_pt = (datetime.datetime.utcnow() - datetime.timedelta(hours=3)).strftime("%d/%m/%Y")
+
+          system_prompt = f"""
+          Você é um assistente que escreve posts curtos em Markdown para Issues de GitHub
+          que serão transformadas em páginas do site {site_name}. Você deve:
+          - Título forte em 1 linha (começando com emoji temático).
+          - Introdução curta (1–2 parágrafos) com curiosidade.
+          - 1 bloco de código executável/útil (bash, yaml, exercícios em passos, etc.) SEM quebrar fences.
+          - Fechar com 3–5 bullets "Pontos-chave".
+          - Nada de HTML; só Markdown.
+          - Tamanho entre {min_words} e {max_words} palavras.
+          - Tom: {tone}.
+          - Tópico base: {topic}.
+          - NÃO coloque labels/metadados no corpo.
+          - Idioma: pt-BR.
+          """.strip()
+
+          user_prompt = f"""
+          Gere um post para o tema: {topic}.
+          Inclua a data no corpo como **Data:** {date_pt}.
+          Retorne JSON com:
+          "title": string (sem markdown),
+          "body": string (markdown completo do post).
+          """.strip()
+
+          # Descobrir modelos disponíveis no OpenRouter
+          headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Accept": "application/json",
+          }
+          try:
+            r = httpx.get("https://openrouter.ai/api/v1/models", headers=headers, timeout=30)
+            r.raise_for_status()
+            data = r.json().get("data", [])
+          except Exception as e:
+            raise SystemExit(f"❌ Falha ao listar modelos do OpenRouter: {e}")
+
+          # Coletar modelos "grátis": id contém ':free' ou pricing 0
+          free_models = []
+          for m in data:
+            mid = m.get("id","")
+            pricing = m.get("pricing", {}) or {}
+            prompt_cost = pricing.get("prompt")
+            completion_cost = pricing.get("completion")
+            zero_pricing = (prompt_cost in (0, "0", "0.0", "0.00", None)) and (completion_cost in (0, "0", "0.0", "0.00", None))
+            if ":free" in mid or zero_pricing:
+              free_models.append(mid)
+
+          candidates = free_models or ["openrouter/auto"]
+
+          client = OpenAI(base_url="https://openrouter.ai/api/v1", api_key=api_key)
+
+          extra_headers = {
+            "HTTP-Referer": site_url,                 # ASCII
+            "X-Title": f"{site_name} - AI Issue Bot", # ASCII
+          }
+
+          def call_model(model, max_toks):
+            return client.chat.completions.create(
+              model=model,
+              messages=[
+                {"role":"system","content":system_prompt},
+                {"role":"user","content":user_prompt},
+              ],
+              temperature=0.7,
+              max_tokens=max_toks,
+              extra_headers=extra_headers,
+            )
+
+          last_err = None
+          for mtoks in [700, 600, 512, 400]:
+            for m in candidates:
+              try:
+                resp = call_model(m, mtoks)
+                content = resp.choices[0].message.content.strip()
+
+                def try_parse_json(s: str):
+                  try:
+                    return json.loads(s)
+                  except json.JSONDecodeError:
+                    mm = re.search(r"\{[\s\S]*\}", s)
+                    if mm:
+                      return json.loads(mm.group(0))
+                    raise
+
+                obj = try_parse_json(content)
+                title = obj.get("title", f"{topic} - Post")
+                body  = obj.get("body", f"# {title}\n\n**Data:** {date_pt}\n\n(Conteúdo)")
+                if not body.lstrip().startswith("# "):
+                  body = f"# {title}\n\n{body}"
+
+                out_dir = pathlib.Path("out"); out_dir.mkdir(parents=True, exist_ok=True)
+                out_file = out_dir / "issue.md"
+                out_file.write_text(body, encoding="utf-8")
+
+                with open(os.getenv("GITHUB_OUTPUT"), "a", encoding="utf-8") as fh:
+                  fh.write(f"title={title}\n")
+                  fh.write(f"file={str(out_file)}\n")
+
+                print(f"✅ Gerado: {title} -> {out_file} (modelo={m}, max_tokens={mtoks})")
+                sys.exit(0)
+
+              except APIStatusError as e:
+                last_err = e
+                code = getattr(e, "status_code", None)
+                print(f"⚠️ Falha com modelo={m}, max_tokens={mtoks}. status={code}. Tentando próximo...")
+                continue
+              except Exception as e:
+                last_err = e
+                print(f"⚠️ Erro com modelo={m}, max_tokens={mtoks}: {e}")
+                continue
+
+          raise SystemExit(f"❌ Não foi possível gerar com os limites atuais. Último erro: {last_err}")
+          PY
+
+      - name: Create Issue from file
+        uses: peter-evans/create-issue-from-file@v5
+        with:
+          title: ${{ steps.gen.outputs.title }}
+          content-filepath: ${{ steps.gen.outputs.file }}
+          labels: ${{ env.LABELS }}
