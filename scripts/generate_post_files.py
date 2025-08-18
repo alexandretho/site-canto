@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import os, json, random, datetime, pathlib, re
-from textwrap import dedent
+import requests
 from slugify import slugify
 
 # ===== Config por ENV =====
@@ -46,37 +46,38 @@ Regras:
   ### Pontos-chave (3–5 bullets)
 - Inclua a linha: **Data:** {date_pt}
 - Tamanho entre {min_words} e {max_words} palavras.
-"""
+""".strip()
 
 user_prompt = f"""
 Gere um post sobre: {topic}.
 Retorne JSON com chaves:
 "title": string (sem markdown),
 "body": string (markdown completo do post).
-"""
+""".strip()
 
-# ===== Chamada OpenRouter usando OpenAI client (com base_url) =====
-from openai import OpenAI
-client = OpenAI(base_url="https://openrouter.ai/api/v1", api_key=api_key)
-
-extra_headers = {
-    "HTTP-Referer": site_url,                   # ASCII
-    "X-Title": f"{site_name} - AI Post Files",  # ASCII
+# ===== Chamada OpenRouter via requests =====
+headers = {
+    "Authorization": f"Bearer {api_key}",
+    "Content-Type": "application/json",
+    "HTTP-Referer": site_url,                     # ASCII
+    "X-Title": f"{site_name} - AI Post Files",    # ASCII
+}
+payload = {
+    "model": model_id,
+    "messages": [
+        {"role":"system","content": system_prompt},
+        {"role":"user","content": user_prompt},
+    ],
+    "temperature": 0.7,
+    "max_tokens": 900,
 }
 
-resp = client.chat.completions.create(
-    model=model_id,
-    messages=[
-        {"role":"system","content":system_prompt.strip()},
-        {"role":"user","content":user_prompt.strip()},
-    ],
-    temperature=0.7,
-    max_tokens=900,
-    extra_headers=extra_headers,
-)
-content = resp.choices[0].message.content.strip()
+r = requests.post("https://openrouter.ai/api/v1/chat/completions",
+                  headers=headers, json=payload, timeout=120)
+r.raise_for_status()
+content = r.json()["choices"][0]["message"]["content"].strip()
 
-# ===== Parse robusto de JSON da resposta =====
+# ===== Parse robusto de JSON =====
 def try_parse_json(s: str):
     try:
         return json.loads(s)
@@ -94,14 +95,14 @@ body  = data.get("body", f"# {title}\n\n**Data:** {date_pt}\n\n(Conteúdo)").str
 if not body.lstrip().startswith("# "):
     body = f"# {title}\n\n{body}"
 
-# ===== Salva arquivo Markdown completo em posts/ =====
+# ===== Salva arquivo Markdown em posts/ =====
 posts_dir = pathlib.Path("posts")
 posts_dir.mkdir(parents=True, exist_ok=True)
 fname = f"{stamp}-{slugify(title)}.md"
 md_path = posts_dir / fname
 md_path.write_text(body, encoding="utf-8")
 
-# ===== Atualiza posts.json para o index.html (formato {"posts":[...]}) =====
+# ===== Atualiza posts.json (formato {"posts":[...]}) =====
 json_path = pathlib.Path("posts.json")
 if json_path.exists():
     try:
@@ -111,17 +112,15 @@ if json_path.exists():
 else:
     root = {"posts": []}
 
-# Gera um pequeno resumo/trecho em texto plano (sem markdown pesado)
 def md_to_excerpt(md: str, max_len=500) -> str:
     # remove code fences
-    md = re.sub(r"```[\\s\\S]*?```", "", md)
-    # remove # títulos
-    md = re.sub(r"^#+\\s*", "", md, flags=re.MULTILINE)
-    # remove links [txt](url) -> txt
-    md = re.sub(r"\\[([^\\]]+)\\]\\([^\\)]+\\)", r"\\1", md)
-    # remove ênfases * _ > -
+    md = re.sub(r"```[\s\S]*?```", "", md)
+    # remove títulos
+    md = re.sub(r"^#+\s*", "", md, flags=re.MULTILINE)
+    # links [txt](url) -> txt
+    md = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", md)
+    # remove ênfases e símbolos
     md = re.sub(r"[>*_`-]", " ", md)
-    # pega primeiras linhas após H1
     lines = [ln.strip() for ln in md.splitlines() if ln.strip()]
     if lines and lines[0].startswith("Data:"):
         lines = lines[1:]
@@ -132,11 +131,10 @@ root["posts"].append({
     "title": title,
     "date": date_iso,
     "content": md_to_excerpt(body),
-    # opcional: se quiser usar depois para linkar o post completo
-    "file": f"./posts/{fname}"
+    "file": f"./posts/{fname}"   # útil para linkar o post completo
 })
 
-# Ordena por data desc e limita a 100
+# Ordena desc e limita 100
 root["posts"].sort(key=lambda x: x.get("date",""), reverse=True)
 root["posts"] = root["posts"][:100]
 
