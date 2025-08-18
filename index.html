@@ -1,227 +1,414 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Canto & Fono – Posts (Issues)</title>
-  <meta name="description" content="Lista de posts gerados por IA via Issues do GitHub."/>
-  <style>
-    :root{
-      --blur-bg: rgba(0,0,0,.55);
-      --card: rgba(0,0,0,.65);
-      --text: #ffffff;
-      --muted:#cbb8ff;
-      --accent:#b388ff;
-      --border: rgba(255,255,255,.12);
-      --radius:16px;
-    }
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      font-family: system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,'Helvetica Neue',Arial;
-      color:var(--text);
-      background: #120828 url('fundo.jpg') center/cover fixed no-repeat;
-    }
-    header{
-      backdrop-filter: blur(6px);
-      background: var(--blur-bg);
-      border-bottom:1px solid var(--border);
-      padding: 18px 16px;
-    }
-    .wrap{max-width: 980px; margin:0 auto}
-    h1{margin:0; font-size: 22px}
-    .subtitle{color:var(--muted); margin-top:6px}
-    main{padding:18px 16px}
-    .toolbar{display:flex; gap:10px; flex-wrap:wrap; margin:12px 0}
-    input,select{
-      background: transparent;
-      color: var(--text);
-      border:1px solid var(--border);
-      border-radius: 10px;
-      padding: 10px 12px;
-      outline: none;
-    }
-    .grid{display:grid; grid-template-columns:1fr; gap:14px}
-    @media(min-width:740px){ .grid{grid-template-columns:1fr 1fr} }
-    .card{
-      background: var(--card);
-      border:1px solid var(--border);
-      border-radius: var(--radius);
-      padding:16px;
-      display:flex; flex-direction:column; gap:10px;
-    }
-    .title{font-weight:700; font-size:18px; line-height:1.35}
-    .meta{font-size:12px; color:var(--muted); display:flex; gap:8px; align-items:center; flex-wrap:wrap}
-    .tag{border:1px solid var(--border); border-radius:999px; padding:3px 8px; color:var(--accent)}
-    .content{line-height:1.6}
-    .empty{color:#e6dfff; opacity:.8; text-align:center; padding:24px; border:1px dashed var(--border); border-radius:var(--radius)}
-    footer{color:var(--muted); text-align:center; padding:22px 16px}
-    a{color:inherit; text-decoration:none}
-    .more{margin-top:6px; color: var(--accent); font-size:14px}
-  </style>
-</head>
-<body>
-  <header>
-    <div class="wrap">
-      <h1>🎤 Canto & 🗣️ Fono – Posts (via Issues)</h1>
-      <div class="subtitle">Posts criados pela IA como Issues públicas no seu repositório GitHub</div>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Canto & Mentoria Vocal — Journal</title>
+    <meta name="description" content="Conteúdo sobre canto, técnica vocal e fonoaudiologia. Posts e curiosidades via GitHub Issues." />
+    <meta name="author" content="Você" />
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+
+    <!-- Canonical & Social -->
+    <link id="canonical-link" rel="canonical" href="https://OWNER.github.io/REPO/" />
+    <meta property="og:title" content="Canto & Mentoria Vocal — Journal" />
+    <meta property="og:description" content="Dicas, cuidados e curiosidades de canto e fonoaudiologia, alimentados por GitHub Issues." />
+    <meta id="og-image" property="og:image" content="https://opengraph.githubassets.com/1/OWNER/REPO" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+    <meta name="theme-color" content="#180828" />
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "Canto & Mentoria Vocal — Journal",
+        "url": "https://OWNER.github.io/REPO/",
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": "https://OWNER.github.io/REPO/?q={search_term_string}",
+          "query-input": "required name=search_term_string"
+        }
+      }
+    </script>
+
+    <style>
+      :root {
+        /* Paleta roxo/voz */
+        --bg-1: 270 45% 8%;
+        --bg-2: 270 50% 10%;
+        --bg-3: 270 60% 12%;
+        --primary: 270 90% 70%;   /* lilás */
+        --primary-ghost: 270 90% 78%;
+        --accent: 290 85% 72%;    /* roxo claro */
+        --muted: 270 18% 78%;
+        --surface: 270 32% 18%;
+        --border: 270 26% 26%;
+        --card: 270 32% 16%;
+        --success: 160 80% 45%;
+        --radius: 14px;
+
+        --glow: 0 0 40px hsla(var(--primary) / 0.35);
+        --inner-glow: inset 0 0 0 1px hsl(var(--border));
+        --ring: 0 0 0 2px hsl(var(--primary) / 0.4), 0 0 0 6px hsl(var(--primary) / 0.15);
+      }
+
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body {
+        margin: 0;
+        color: hsl(270 30% 96%);
+        background:
+          /* imagem do Canva como fundo */
+          url('https://canto-mentoriaexpress.my.canva.site/_assets/media/a8ea5dcef312c527b847c5f77d716044.jpg') center/cover fixed no-repeat,
+          linear-gradient(180deg, hsl(var(--bg-1)), hsl(var(--bg-2)) 40%, hsl(var(--bg-3)) 100%);
+        font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+        min-height: 100dvh;
+      }
+      .container { max-width: 1120px; margin: 0 auto; padding: 0 20px; }
+
+      /* Nav */
+      header.navbar {
+        position: sticky; top: 0; z-index: 50;
+        backdrop-filter: blur(10px);
+        background: linear-gradient(180deg, rgba(0,0,0,.55), rgba(0,0,0,.35));
+        border-bottom: 1px solid hsl(var(--border));
+      }
+      .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+      .brand { display: flex; align-items: center; gap: 12px; color: white; text-decoration: none; }
+      .brand-mark {
+        width: 28px; height: 28px; border-radius: 8px;
+        background: radial-gradient(100% 100% at 30% 20%, hsl(var(--primary)), hsl(var(--accent)) 60%);
+        box-shadow: var(--glow);
+      }
+      .brand-name { font-family: Orbitron, Inter, sans-serif; font-weight: 700; letter-spacing: 0.06em; font-size: 14px; text-transform: uppercase; }
+      nav a {
+        color: hsl(270 20% 88%);
+        text-decoration: none; margin-left: 18px; font-weight: 500; font-size: 14px;
+        position: relative;
+      }
+      nav a::after { content: ""; position: absolute; left: 0; bottom: -6px; width: 100%; height: 2px; background: linear-gradient(90deg, hsl(var(--primary)), hsl(var(--accent))); transform: scaleX(0); transform-origin: right; transition: transform .25s ease; }
+      nav a:hover { color: white; }
+      nav a:hover::after { transform: scaleX(1); transform-origin: left; }
+
+      /* Hero */
+      .hero { position: relative; padding: 72px 0 40px; overflow: hidden; }
+      .hero-grid {
+        display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 32px; align-items: center;
+      }
+      .hero h1 { font-family: Orbitron, Inter, sans-serif; font-size: clamp(28px, 5vw, 48px); line-height: 1.1; margin: 0 0 14px; letter-spacing: 0.01em; }
+      .hero .badge {
+        display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 999px;
+        background: hsl(var(--card)); border: 1px solid hsl(var(--border)); color: hsl(270 25% 85%);
+        font-size: 12px; text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 12px;
+      }
+      .subtitle { color: hsl(270 15% 82%); font-size: clamp(14px, 2.2vw, 18px); max-width: 62ch; }
+
+      .hero-cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 20px; }
+      .btn {
+        --_bg: hsl(var(--primary));
+        --_bg2: hsl(var(--accent));
+        display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+        padding: 12px 16px; border-radius: 999px; color: white; text-decoration: none; font-weight: 600;
+        background: linear-gradient(135deg, var(--_bg), var(--_bg2));
+        box-shadow: 0 6px 18px hsl(var(--primary) / 0.25), inset 0 0 0 1px hsl(var(--primary) / 0.5);
+        transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
+      }
+      .btn:hover { transform: translateY(-1px); filter: saturate(1.08); box-shadow: 0 10px 22px hsl(var(--primary) / 0.35), inset 0 0 0 1px hsl(var(--primary)); }
+      .btn.ghost {
+        background: linear-gradient(135deg, hsl(var(--surface)), hsl(var(--card)));
+        color: hsl(270 30% 96%);
+        box-shadow: 0 0 0 0 transparent, inset 0 0 0 1px hsl(var(--border));
+      }
+      .btn.ghost:hover { box-shadow: 0 0 0 0 transparent, inset 0 0 0 1px hsl(var(--primary)); }
+
+      /* Search / Filter bar */
+      .toolbar { position: sticky; top: 64px; z-index: 40; background: linear-gradient(180deg, rgba(0,0,0,.6), rgba(0,0,0,.35)); border-bottom: 1px solid hsl(var(--border)); backdrop-filter: blur(8px); }
+      .toolbar-inner { display: flex; gap: 12px; padding: 12px 0; }
+      .input, .select { flex: 1; min-width: 0; padding: 12px 14px; border-radius: 12px; color: white; background: hsl(var(--card)); border: 1px solid hsl(var(--border)); outline: none; }
+      .input::placeholder { color: hsl(270 10% 70%); }
+      .select { max-width: 220px; }
+      .input:focus, .select:focus { box-shadow: var(--ring); border-color: transparent; }
+
+      /* Sections */
+      section { padding: 42px 0; }
+      section header h2 { font-family: Orbitron, Inter, sans-serif; margin: 0 0 14px; font-size: clamp(20px, 3.6vw, 28px); }
+      section header p { margin: 0 0 16px; color: hsl(270 15% 82%); }
+
+      /* Grid & Cards */
+      .grid { display: grid; gap: 16px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      @media (max-width: 1024px) { .hero-grid { grid-template-columns: 1fr; } .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .select { max-width: 180px; } }
+      @media (max-width: 640px) { .grid { grid-template-columns: 1fr; } .toolbar-inner { flex-direction: column; } .select { max-width: 100%; } }
+
+      .card {
+        background: linear-gradient(180deg, hsl(var(--card)), hsl(var(--surface)));
+        border: 1px solid hsl(var(--border));
+        border-radius: var(--radius);
+        padding: 16px; position: relative; overflow: hidden; isolation: isolate;
+        transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+      }
+      .card:hover { transform: translateY(-3px); box-shadow: var(--glow); border-color: hsl(var(--primary) / 0.6); }
+      .card .meta { display: flex; gap: 10px; align-items: center; color: hsl(270 14% 80%); font-size: 12px; margin-bottom: 8px; }
+      .card h3 { margin: 8px 0 8px; font-size: 18px; }
+      .tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 10px; }
+      .tag { font-size: 11px; padding: 6px 8px; border-radius: 999px; background: hsl(var(--bg-2)); border: 1px solid hsl(var(--border)); color: hsl(270 20% 90%); }
+      .excerpt { color: hsl(270 15% 90%); font-size: 14px; line-height: 1.55; }
+      .card-actions { margin-top: 12px; display: flex; gap: 10px; }
+      .link { color: hsl(var(--primary)); text-decoration: none; font-weight: 600; }
+      .link:hover { text-decoration: underline; }
+
+      /* Footer */
+      footer { border-top: 1px solid hsl(var(--border)); padding: 24px 0; color: hsl(270 15% 86%); font-size: 14px; text-align:center }
+      footer a { color: hsl(var(--primary)); text-decoration: none; }
+      footer a:hover { text-decoration: underline; }
+
+      /* Glow */
+      .pointer-glow { position: fixed; inset: 0; pointer-events: none; z-index: 1; }
+      .pointer-glow::before {
+        content: ""; position: absolute; width: 360px; height: 360px; border-radius: 50%;
+        background: radial-gradient(closest-side, hsl(var(--primary) / 0.22), transparent);
+        transform: translate(-50%, -50%);
+        left: var(--px, -9999px); top: var(--py, -9999px);
+        filter: blur(16px);
+      }
+
+      .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+    </style>
+  </head>
+
+  <body>
+    <div class="pointer-glow" aria-hidden="true"></div>
+
+    <header class="navbar">
+      <div class="container nav-inner">
+        <a href="#top" class="brand" aria-label="Início">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <span class="brand-name">Canto • Mentoria • Journal</span>
+        </a>
+        <nav aria-label="Navegação primária">
+          <a href="#posts">Posts</a>
+          <a href="#curiosidades">Curiosidades</a>
+          <a href="#contato">Contato</a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="top">
+      <section class="hero">
+        <div class="container hero-grid">
+          <div>
+            <span class="badge">Voz • Técnica • Saúde Vocal</span>
+            <h1>Mentoria em Canto & Fonoaudiologia</h1>
+            <p class="subtitle">Dicas práticas, cuidados e curiosidades sobre canto e saúde da voz — publicados automaticamente a partir de Issues do GitHub.</p>
+          </div>
+          <div>
+            <article class="card" aria-label="Como funciona">
+              <div class="meta">Automação • Atualizado em tempo real</div>
+              <h3>Publicação via Issues</h3>
+              <p class="excerpt">Os posts e curiosidades são criados por IA e viram Issues com labels. Este site lê essas Issues públicas e mostra aqui em tempo real.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
       <div class="toolbar">
-        <input id="q" type="search" placeholder="Filtrar (ex.: belting, passaggio, mentoria)" />
-        <select id="limit">
-          <option value="6">6 itens</option>
-          <option value="9" selected>9 itens</option>
-          <option value="12">12 itens</option>
-          <option value="20">20 itens</option>
-        </select>
+        <div class="container toolbar-inner">
+          <label class="sr-only" for="q">Buscar</label>
+          <input id="q" class="input" type="search" placeholder="Buscar em título, corpo e labels…" />
+          <label class="sr-only" for="type">Tipo</label>
+          <select id="type" class="select" aria-label="Filtro de tipo">
+            <option value="all">Tudo</option>
+            <option value="post">Posts</option>
+            <option value="curiosidade">Curiosidades</option>
+          </select>
+        </div>
       </div>
-    </div>
-  </header>
 
-  <main>
-    <div class="wrap">
-      <div id="grid" class="grid"></div>
-      <div id="empty" class="empty" style="display:none"></div>
-    </div>
-  </main>
+      <section id="posts">
+        <div class="container">
+          <header>
+            <h2>Posts</h2>
+            <p>Artigos curtos e objetivos. Alimentados por Issues com label <code>post</code> ou <code>publicar</code>.</p>
+          </header>
+          <div id="postsGrid" class="grid" role="list"></div>
+        </div>
+      </section>
 
-  <footer>
-    Use <code>?repo=alexandretho.github.io/site-canto&labels=post,publicar&limit=12</code> na URL para configurar sem editar código.
-  </footer>
+      <section id="curiosidades">
+        <div class="container">
+          <header>
+            <h2>Curiosidades</h2>
+            <p>Notas rápidas e insights. Alimentadas por Issues com label <code>curiosidade</code>.</p>
+          </header>
+          <div id="curiosidadesGrid" class="grid" role="list"></div>
+        </div>
+      </section>
 
-<script>
-/** ============ Config ============ **/
-const params = new URLSearchParams(location.search);
-const CONFIG = {
-  owner: (params.get('repo') || 'alexandretho.github.io/site-canto').split('/')[0],
-  repo:  (params.get('repo') || 'alexandretho.github.io/site-canto').split('/')[1],
-  labels: (params.get('labels') || 'post,publicar')
-            .split(',').map(s => s.trim()).filter(Boolean),
-  defaultLimit: parseInt(params.get('limit') || '9', 10) || 9
-};
+      <section id="contato">
+        <div class="container">
+          <header>
+            <h2>Contato</h2>
+            <p>Fale comigo por e-mail ou abra uma issue de contato no repositório.</p>
+          </header>
+          <div class="hero-cta">
+            <a id="btn-mail" class="btn" href="#">Enviar e-mail</a>
+            <a id="btn-issue-contato" class="btn ghost" target="_blank" rel="noopener" href="#">Abrir issue de contato</a>
+          </div>
+        </div>
+      </section>
+    </main>
 
-// Tema opcional
-(function applyTheme(){
-  const preset = params.get('preset');
-  if(preset === 'purple'){
-    document.documentElement.style.setProperty('--card','rgba(27,16,51,.72)');
-    document.documentElement.style.setProperty('--accent','#b388ff');
-    document.documentElement.style.setProperty('--muted','#c9a8ff');
-  }
-})();
-
-/** ============ Helpers ============ **/
-const grid = document.getElementById('grid');
-const emptyBox = document.getElementById('empty');
-const qInput = document.getElementById('q');
-const limitSel = document.getElementById('limit');
-
-function fmtDate(iso){
-  try {
-    return new Date(iso).toLocaleString('pt-BR', { dateStyle:'short', timeStyle:'short' });
-  } catch { return iso; }
-}
-
-async function renderMarkdownGFM(text){
-  try{
-    const res = await fetch('https://api.github.com/markdown', {
-      method: 'POST',
-      headers: { 'Content-Type':'application/json' },
-      body: JSON.stringify({ text, mode:'gfm', context:`${CONFIG.owner}/${CONFIG.repo}` })
-    });
-    if(!res.ok) throw new Error('md render fail');
-    return await res.text();
-  }catch(e){
-    const esc = (s)=> s.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
-    return '<pre style="white-space:pre-wrap;margin:0">'+esc(text)+'</pre>';
-  }
-}
-
-/** ============ Data Fetch (sem labels, filtrando no cliente = OR) ============ **/
-async function fetchIssues(){
-  const url = `https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}/issues?state=open&per_page=50&sort=created&direction=desc`;
-  const res = await fetch(url, {
-    headers:{
-      'Accept':'application/vnd.github+json',
-      'User-Agent': 'gh-issues-reader' // ajuda com alguns gateways
-    }
-  });
-  if(!res.ok) throw new Error('Falha ao carregar issues: '+res.status);
-  const data = await res.json();
-  return data.filter(it => !it.pull_request);
-}
-
-function hasAnyWantedLabel(issue){
-  if(!CONFIG.labels.length) return true;
-  const names = (issue.labels || []).map(l => (l.name||'').toLowerCase());
-  return CONFIG.labels.some(w => names.includes(w.toLowerCase()));
-}
-
-/** ============ UI ============ **/
-let ALL = [];
-async function load(){
-  try{
-    limitSel.value = String(CONFIG.defaultLimit);
-    const issues = await fetchIssues();
-    const filtered = issues.filter(hasAnyWantedLabel);
-    if(!filtered.length){
-      emptyBox.style.display = 'block';
-      emptyBox.textContent = 'Nenhum post encontrado com as labels: '+(CONFIG.labels.join(', ')||'(todas)');
-      return;
-    }
-    // Pré-render markdown em paralelo
-    const rendered = await Promise.all(filtered.map(async (it) => ({
-      number: it.number,
-      title: it.title,
-      created_at: it.created_at,
-      labels: it.labels?.map(l => l.name) || [],
-      html: await renderMarkdownGFM(it.body || '')
-    })));
-    ALL = rendered;
-    render();
-  }catch(e){
-    emptyBox.style.display = 'block';
-    emptyBox.textContent = 'Erro ao carregar posts. Verifique o ?repo=OWNER/REPO e se as issues são públicas.';
-    console.error(e);
-  }
-}
-
-function render(){
-  const q = (qInput.value||'').toLowerCase().trim();
-  const limit = parseInt(limitSel.value,10)||CONFIG.defaultLimit;
-  let list = ALL;
-  if(q){
-    list = list.filter(it =>
-      (it.title+' '+it.html.replace(/<[^>]+>/g,' ')).toLowerCase().includes(q)
-    );
-  }
-  grid.innerHTML = '';
-  emptyBox.style.display = list.length ? 'none' : 'block';
-  if(!list.length){
-    emptyBox.textContent = 'Nada encontrado com esse filtro.';
-    return;
-  }
-  for(const it of list.slice(0, limit)){
-    const card = document.createElement('article');
-    card.className = 'card';
-    const labelsHtml = it.labels.slice(0,2).map(l => `<span class="tag">${l}</span>`).join(' ');
-    card.innerHTML = `
-      <div class="title">${it.title}</div>
-      <div class="meta">
-        ${labelsHtml ? labelsHtml+'<span>•</span>' : ''}
-        <time>${fmtDate(it.created_at)}</time>
-        <span>•</span>
-        <a class="more" href="https://github.com/${CONFIG.owner}/${CONFIG.repo}/issues/${it.number}" target="_blank" rel="noopener">Ver no GitHub →</a>
+    <footer>
+      <div class="container">
+        <span id="footer-year"></span> • <a id="repo-link" target="_blank" rel="noopener" href="#">Repositório</a> • Feito com ♥ e GitHub Pages
       </div>
-      <div class="content">${it.html}</div>
-    `;
-    grid.appendChild(card);
-  }
-}
+    </footer>
 
-qInput.addEventListener('input', render);
-limitSel.addEventListener('change', render);
+    <script>
+      // ====== CONFIG RÁPIDA ======
+      const OWNER = "alexandretho";          // <--- troque
+      const REPO  = "site-canto";           // <--- troque
+      const SITE_EMAIL = "contato@exemplo.com"; // <--- troque
+      // ===========================
 
-load();
-</script>
-</body>
+      const ISSUE_BASE = `https://github.com/${OWNER}/${REPO}/issues`;
+      const API_BASE = `https://api.github.com/repos/${OWNER}/${REPO}/issues`;
+
+      // SEO dinâmico
+      (function seoDynamic() {
+        const canonical = document.getElementById('canonical-link');
+        const ogImg = document.getElementById('og-image');
+        const ghPages = `https://${OWNER}.github.io/${REPO}/`;
+        if (OWNER !== 'OWNER' && REPO !== 'REPO') {
+          canonical?.setAttribute('href', ghPages);
+          ogImg?.setAttribute('content', `https://opengraph.githubassets.com/1/${OWNER}/${REPO}`);
+        }
+      })();
+
+      // Glow do mouse
+      document.addEventListener('pointermove', (e) => {
+        const glow = document.querySelector('.pointer-glow');
+        if (glow) {
+          glow.style.setProperty('--px', e.clientX + 'px');
+          glow.style.setProperty('--py', e.clientY + 'px');
+        }
+      }, { passive: true });
+
+      // Utils
+      const stripMd = (s = "") => s
+        .replace(/```[\s\S]*?```/g, " ")
+        .replace(/`[^`]*`/g, " ")
+        .replace(/\!\[[^\]]*\]\([^\)]*\)/g, " ")
+        .replace(/\[([^\]]*)\]\([^\)]*\)/g, "$1")
+        .replace(/[>#*_~`]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+
+      const fmtDate = (iso) => new Date(iso).toLocaleDateString('pt-BR', { year: 'numeric', month: 'short', day: '2-digit' });
+
+      function newIssueUrl(kind) {
+        const label = kind === 'post' ? 'post' : (kind === 'curiosidade' ? 'curiosidade' : 'contato');
+        const title = kind === 'post' ? 'Novo post: ' : (kind === 'curiosidade' ? 'Curiosidade: ' : 'Contato: ');
+        const body = kind === 'post'
+          ? `## Resumo\n\n> Escreva aqui um resumo curto.\n\n## Conteúdo\n\n- Tópico 1\n- Tópico 2\n\n---\n\nReferências:\n`
+          : (kind === 'curiosidade'
+              ? `## Curiosidade\n\nDescreva rapidamente a curiosidade.\n\nFonte/Link:\n`
+              : `## Assunto\n\nConte aqui seu objetivo.\n\n## Detalhes\n\n- Contexto:\n- Como posso ajudar:\n`);
+        return `${ISSUE_BASE}/new?title=${encodeURIComponent(title)}&labels=${encodeURIComponent(label)}&body=${encodeURIComponent(body)}`;
+      }
+
+      // CTAs
+      document.getElementById('btn-issue-contato').href = newIssueUrl('contato');
+      document.getElementById('btn-mail').href = `mailto:${SITE_EMAIL}?subject=${encodeURIComponent('Contato via Journal Vocal')}`;
+      document.getElementById('footer-year').textContent = String(new Date().getFullYear());
+      document.getElementById('repo-link').href = `https://github.com/${OWNER}/${REPO}`;
+
+      // Estado
+      let posts = [];
+      let curiosidades = [];
+
+      // Busca por label (uma por vez)
+      async function fetchIssuesByLabel(label) {
+        const url = `${API_BASE}?state=open&labels=${encodeURIComponent(label)}&per_page=100`;
+        const res = await fetch(url, { headers: { 'Accept': 'application/vnd.github+json', 'User-Agent': 'gh-issues-reader' } });
+        if (!res.ok) throw new Error('Falha ao carregar ' + label);
+        const data = await res.json();
+        return data.filter(i => !i.pull_request);
+      }
+
+      // Mescla e remove duplicados por número
+      function mergeUnique(a = [], b = []) {
+        const map = new Map();
+        [...a, ...b].forEach(it => map.set(it.number, it));
+        return Array.from(map.values());
+      }
+
+      function renderCard(issue) {
+        const el = document.createElement('article');
+        el.className = 'card';
+        const labels = (issue.labels || []).map(l => typeof l === 'string' ? l : l.name).filter(Boolean);
+        const excerpt = stripMd(issue.body || '').slice(0, 240) + ((issue.body || '').length > 240 ? '…' : '');
+        el.innerHTML = `
+          <div class="meta">${fmtDate(issue.created_at)} • #${issue.number}</div>
+          <h3>${issue.title}</h3>
+          <div class="tags">${labels.map(t => `<span class="tag">${t}</span>`).join('')}</div>
+          <p class="excerpt">${excerpt}</p>
+          <div class="card-actions">
+            <a class="link" href="${issue.html_url}" target="_blank" rel="noopener">Ler no GitHub</a>
+          </div>
+        `;
+        return el;
+      }
+
+      function applyFilters() {
+        const q = document.getElementById('q').value.toLowerCase().trim();
+        const type = document.getElementById('type').value; // all | post | curiosidade
+        const match = (iss) => {
+          const text = `${iss.title} ${(iss.body || '')} ${(iss.labels || []).map(l => typeof l === 'string' ? l : l.name).join(' ')}`.toLowerCase();
+          return text.includes(q);
+        };
+
+        const postsGrid = document.getElementById('postsGrid');
+        const curGrid = document.getElementById('curiosidadesGrid');
+        postsGrid.innerHTML = '';
+        curGrid.innerHTML = '';
+
+        const showPosts = type === 'all' || type === 'post';
+        const showCur = type === 'all' || type === 'curiosidade';
+        document.getElementById('posts').style.display = showPosts ? '' : 'none';
+        document.getElementById('curiosidades').style.display = showCur ? '' : 'none';
+
+        if (showPosts) posts.filter(match).forEach(i => postsGrid.appendChild(renderCard(i)));
+        if (showCur) curiosidades.filter(match).forEach(i => curGrid.appendChild(renderCard(i)));
+      }
+
+      async function init() {
+        try {
+          // Posts = label "post" OU "publicar" (duas requisições e merge)
+          const [lblPost, lblPublicar, lblCur] = await Promise.all([
+            fetchIssuesByLabel('post').catch(() => []),
+            fetchIssuesByLabel('publicar').catch(() => []),
+            fetchIssuesByLabel('curiosidade').catch(() => []),
+          ]);
+          posts = mergeUnique(lblPost, lblPublicar);
+          curiosidades = lblCur;
+        } catch (e) {
+          console.warn('Aviso:', e);
+        } finally {
+          applyFilters();
+        }
+      }
+
+      document.getElementById('q').addEventListener('input', applyFilters);
+      document.getElementById('type').addEventListener('change', applyFilters);
+      init();
+    </script>
+  </body>
 </html>
