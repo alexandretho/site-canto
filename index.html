@@ -2,91 +2,225 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Canto & Fono Mentoria</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Canto & Fono – Posts (Issues)</title>
+  <meta name="description" content="Lista de posts gerados por IA via Issues do GitHub."/>
   <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: url('fundo.jpg') no-repeat center center fixed;
-      background-size: cover;
-      color: #fff;
+    :root{
+      --blur-bg: rgba(0,0,0,.55);
+      --card: rgba(0,0,0,.65);
+      --text: #ffffff;
+      --muted:#cbb8ff;
+      --accent:#b388ff;
+      --border: rgba(255,255,255,.12);
+      --radius:16px;
     }
-    header {
-      background-color: rgba(0, 0, 0, 0.7);
-      padding: 20px;
-      text-align: center;
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,'Helvetica Neue',Arial;
+      color:var(--text);
+      background: #120828 url('fundo.jpg') center/cover fixed no-repeat;
     }
-    header h1 {
-      margin: 0;
-      font-size: 2rem;
-      color: #d6b8ff;
+    header{
+      backdrop-filter: blur(6px);
+      background: var(--blur-bg);
+      border-bottom:1px solid var(--border);
+      padding: 18px 16px;
     }
-    main {
-      max-width: 800px;
-      margin: 20px auto;
-      padding: 20px;
-      background-color: rgba(0, 0, 0, 0.6);
-      border-radius: 12px;
+    .wrap{max-width: 980px; margin:0 auto}
+    h1{margin:0; font-size: 22px}
+    .subtitle{color:var(--muted); margin-top:6px}
+    main{padding:18px 16px}
+    .toolbar{display:flex; gap:10px; flex-wrap:wrap; margin:12px 0}
+    input,select{
+      background: transparent;
+      color: var(--text);
+      border:1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      outline: none;
     }
-    .post {
-      margin-bottom: 30px;
-      padding-bottom: 15px;
-      border-bottom: 1px solid rgba(255,255,255,0.2);
+    .grid{display:grid; grid-template-columns:1fr; gap:14px}
+    @media(min-width:740px){ .grid{grid-template-columns:1fr 1fr} }
+    .card{
+      background: var(--card);
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      padding:16px;
+      display:flex; flex-direction:column; gap:10px;
     }
-    .post h2 {
-      margin: 0;
-      font-size: 1.5rem;
-      color: #e2c6ff;
-    }
-    .post small {
-      color: #aaa;
-      font-size: 0.9rem;
-    }
-    .post p {
-      margin-top: 10px;
-      line-height: 1.5;
-    }
+    .title{font-weight:700; font-size:18px; line-height:1.35}
+    .meta{font-size:12px; color:var(--muted); display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+    .tag{border:1px solid var(--border); border-radius:999px; padding:3px 8px; color:var(--accent)}
+    .content{line-height:1.6}
+    .empty{color:#e6dfff; opacity:.8; text-align:center; padding:24px; border:1px dashed var(--border); border-radius:var(--radius)}
+    footer{color:var(--muted); text-align:center; padding:22px 16px}
+    a{color:inherit; text-decoration:none}
+    .more{margin-top:6px; color: var(--accent); font-size:14px}
   </style>
 </head>
 <body>
   <header>
-    <h1>Notícias & Curiosidades - Canto e Fonoaudiologia</h1>
+    <div class="wrap">
+      <h1>🎤 Canto & 🗣️ Fono – Posts (via Issues)</h1>
+      <div class="subtitle">Posts criados pela IA como Issues públicas no seu repositório GitHub</div>
+      <div class="toolbar">
+        <input id="q" type="search" placeholder="Filtrar (ex.: belting, passaggio, pix, mentoria)" />
+        <select id="limit">
+          <option value="6">6 itens</option>
+          <option value="9" selected>9 itens</option>
+          <option value="12">12 itens</option>
+          <option value="20">20 itens</option>
+        </select>
+      </div>
+    </div>
   </header>
-  <main id="posts-container">
-    <p>Carregando posts...</p>
+
+  <main>
+    <div class="wrap">
+      <div id="grid" class="grid"></div>
+      <div id="empty" class="empty" style="display:none"></div>
+    </div>
   </main>
 
-  <script>
-    async function carregarPosts() {
-      try {
-        const response = await fetch('posts.json');
-        const data = await response.json();
-        const container = document.getElementById('posts-container');
+  <footer>
+    Dica: passe <code>?repo=OWNER/REPO&labels=post,publicar&limit=12</code> na URL para configurar sem editar código.
+  </footer>
 
-        // Ordenar por data (mais recentes primeiro)
-        data.posts.sort((a, b) => new Date(b.date) - new Date(a.date));
+<script>
+/** ============ Config ============ **/
+const params = new URLSearchParams(location.search);
+const CONFIG = {
+  // Defina seu repo aqui OU passe ?repo=owner/nome na URL
+  owner: (params.get('repo') || 'SEU_USUARIO/SEU_REPO').split('/')[0],
+  repo:  (params.get('repo') || 'SEU_USUARIO/SEU_REPO').split('/')[1],
+  // Labels que identificam posts (separe por vírgula na URL)
+  labels: (params.get('labels') || 'post,publicar')
+            .split(',').map(s => s.trim()).filter(Boolean),
+  // Limite padrão (sobreposto pelo <select> e por ?limit=)
+  defaultLimit: parseInt(params.get('limit') || '9', 10) || 9
+};
 
-        container.innerHTML = '';
+// Tema opcional via URL (ajustes sutis)
+(function applyTheme(){
+  const preset = params.get('preset');
+  if(preset === 'purple'){
+    document.documentElement.style.setProperty('--card','rgba(27,16,51,.72)');
+    document.documentElement.style.setProperty('--accent','#b388ff');
+    document.documentElement.style.setProperty('--muted','#c9a8ff');
+  }
+})();
 
-        data.posts.forEach(post => {
-          const postDiv = document.createElement('div');
-          postDiv.classList.add('post');
+/** ============ Helpers ============ **/
+const grid = document.getElementById('grid');
+const emptyBox = document.getElementById('empty');
+const qInput = document.getElementById('q');
+const limitSel = document.getElementById('limit');
 
-          postDiv.innerHTML = `
-            <h2>${post.title}</h2>
-            <small>${new Date(post.date).toLocaleDateString('pt-BR')}</small>
-            <p>${post.content}</p>
-          `;
+function fmtDate(iso){
+  try {
+    return new Date(iso).toLocaleString('pt-BR', { dateStyle:'short', timeStyle:'short' });
+  } catch { return iso; }
+}
 
-          container.appendChild(postDiv);
-        });
-      } catch (error) {
-        document.getElementById('posts-container').innerHTML = '<p>Erro ao carregar os posts.</p>';
-      }
+// Renderiza Markdown para HTML usando a API pública do GitHub
+async function renderMarkdownGFM(text){
+  try{
+    const res = await fetch('https://api.github.com/markdown', {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json' },
+      body: JSON.stringify({ text, mode:'gfm', context:`${CONFIG.owner}/${CONFIG.repo}` })
+    });
+    if(!res.ok) throw new Error('md render fail');
+    return await res.text();
+  }catch(e){
+    // Fallback simples (escapar e manter quebras de linha)
+    const esc = (s)=> s.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+    return '<pre style="white-space:pre-wrap;margin:0">'+esc(text)+'</pre>';
+  }
+}
+
+/** ============ Data Fetch ============ **/
+async function fetchIssues(){
+  const labels = CONFIG.labels.join(',');
+  const url = `https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}/issues`+
+              `?state=open&per_page=30&sort=created&direction=desc&labels=${encodeURIComponent(labels)}`;
+  const res = await fetch(url, { headers:{ 'Accept':'application/vnd.github+json' }});
+  if(!res.ok){
+    throw new Error('Falha ao carregar issues: '+res.status);
+  }
+  const data = await res.json();
+  // Exclui PRs (GitHub retorna PRs no endpoint de issues)
+  return data.filter(it => !it.pull_request);
+}
+
+/** ============ UI ============ **/
+let ALL = [];
+async function load(){
+  try{
+    limitSel.value = String(CONFIG.defaultLimit);
+    const issues = await fetchIssues();
+    if(!issues.length){
+      emptyBox.style.display = 'block';
+      emptyBox.textContent = 'Nenhum post encontrado com as labels: '+CONFIG.labels.join(', ');
+      return;
     }
+    // Pré-render markdown (paralelo)
+    const rendered = await Promise.all(issues.map(async (it) => ({
+      number: it.number,
+      title: it.title,
+      created_at: it.created_at,
+      labels: it.labels?.map(l => l.name) || [],
+      html: await renderMarkdownGFM(it.body || '')
+    })));
+    ALL = rendered;
+    render();
+  }catch(e){
+    emptyBox.style.display = 'block';
+    emptyBox.textContent = 'Erro ao carregar posts. Verifique o repositório/labels na URL.';
+    console.error(e);
+  }
+}
 
-    carregarPosts();
-  </script>
+function render(){
+  const q = (qInput.value||'').toLowerCase().trim();
+  const limit = parseInt(limitSel.value,10)||CONFIG.defaultLimit;
+  let list = ALL;
+  if(q){
+    list = list.filter(it =>
+      (it.title+' '+it.html.replace(/<[^>]+>/g,' ')).toLowerCase().includes(q)
+    );
+  }
+  grid.innerHTML = '';
+  emptyBox.style.display = list.length ? 'none' : 'block';
+  if(!list.length){
+    emptyBox.textContent = 'Nada encontrado com esse filtro.';
+    return;
+  }
+
+  for(const it of list.slice(0, limit)){
+    const card = document.createElement('article');
+    card.className = 'card';
+    const labelsHtml = it.labels.slice(0,2).map(l => `<span class="tag">${l}</span>`).join(' ');
+    card.innerHTML = `
+      <div class="title">${it.title}</div>
+      <div class="meta">
+        ${labelsHtml ? labelsHtml+'<span>•</span>' : ''}
+        <time>${fmtDate(it.created_at)}</time>
+        <span>•</span>
+        <a class="more" href="https://github.com/${CONFIG.owner}/${CONFIG.repo}/issues/${it.number}" target="_blank" rel="noopener">Ver no GitHub →</a>
+      </div>
+      <div class="content">${it.html}</div>
+    `;
+    grid.appendChild(card);
+  }
+}
+
+qInput.addEventListener('input', render);
+limitSel.addEventListener('change', render);
+
+load();
+</script>
 </body>
 </html>
