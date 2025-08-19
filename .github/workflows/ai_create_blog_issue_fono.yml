@@ -2,7 +2,7 @@ name: AI – Create Blog Issue (OpenRouter, auto-free-model) – Fono
 
 on:
   schedule:
-    - cron: "0 */4 * * *"   # a cada 4 horas
+    - cron: "0 */12 * * *"   # a cada 12 horas
   workflow_dispatch: {}
 
 permissions:
